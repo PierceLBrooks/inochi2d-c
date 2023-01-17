@@ -2,6 +2,8 @@
 docs.json
 __dummy.html
 docs/
+build/
+install/
 /inochi2d-c
 inochi2d-c.so
 inochi2d-c.dylib
