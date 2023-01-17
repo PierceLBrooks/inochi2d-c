@@ -4,7 +4,7 @@ include(FetchContent)
 
 project(Inochi2D)
 
-set(SFML_VERSION "2.5.1")
+set(SFML_VERSION "master")
 
 FetchContent_Declare(
     sfml

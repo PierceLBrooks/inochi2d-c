@@ -1,9 +1,12 @@
 
 #include "inochi2d.h"
 #include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Window/ContextSettings.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Context.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/System/Clock.hpp>
 #include <iostream>
@@ -24,12 +27,15 @@ int main(int argc, char** argv)
 {
     float width = 1024.0f;
     float height = 1024.0f;
+    sf::ContextSettings setting = sf::ContextSettings(0, 1);
     std::string puppet = "";
     InPuppet* pup = nullptr;
+    sf::Context* context = nullptr;
     sf::Sprite* puppetSprite = nullptr;
     sf::RenderTexture* puppetTexture = nullptr;
     sf::RenderWindow* window = new sf::RenderWindow();
-    window->create(sf::VideoMode(static_cast<unsigned int>(width), static_cast<unsigned int>(height)), "Inochi2D");
+    sf::CircleShape* circle = new sf::CircleShape(5.0f);
+    window->create(sf::VideoMode(sf::Vector2u(sf::Vector2f(width, height))), sf::String("Inochi2D"), sf::Style::Default, setting);
     window->setFramerateLimit(60);
     while (window->isOpen()) {
         sf::Event event;
@@ -45,16 +51,29 @@ int main(int argc, char** argv)
         }
         if (puppetTexture == nullptr) {
             if (argc > 1) {
-                puppet += std::string(argv[1]);
-                std::cout << puppet << std::endl;
-                puppetTexture->create(window->getSize().x, window->getSize().y, sf::ContextSettings(0, 1));
-                puppetTexture->setActive(true);
-                inInit([](){return getTime();});
-                inViewportSet(width, height);
-                inViewportGet(&width, &height);
-                std::cout << width << 'x' << height << std::endl;
-                inCameraSetZoom(inCameraGetCurrent(), 0.5f);
-                pup = inPuppetLoad(puppet.c_str());
+                if (sf::Context::getActiveContext() == nullptr) {
+                    std::cout << "Hi." << std::endl;
+                    window->clear(sf::Color::Black);
+                    window->draw(*circle);
+                    window->display();
+                    context = new sf::Context(setting, window->getSize());
+                    context->setActive(true);
+                    continue;
+                } else {
+                    puppet += std::string(argv[1]);
+                    std::cout << puppet << std::endl;
+                    //puppetTexture = new sf::RenderTexture();
+                    //puppetTexture->create(window->getSize(), setting);
+                    //puppetTexture->setActive(true);
+                    //puppetTexture->resetGLStates();
+                    context->setActive(true);
+                    inInit([](){return getTime();});
+                    inViewportSet(width, height);
+                    inViewportGet(&width, &height);
+                    std::cout << width << 'x' << height << std::endl;
+                    inCameraSetZoom(inCameraGetCurrent(), 0.5f);
+                    pup = inPuppetLoad(puppet.c_str());
+                }
                 continue;
             }
         } else {
@@ -86,9 +105,10 @@ int main(int argc, char** argv)
     if (pup != nullptr) {
         //inDestroyPuppet(pup);
     }
+    delete circle;
     delete puppetSprite;
     delete puppetTexture;
     delete window;
+    delete context;
     return 0;
 }
-
